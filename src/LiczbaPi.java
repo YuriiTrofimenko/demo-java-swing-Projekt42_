@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.util.Random;
 import javax.swing.JPanel;
 
@@ -14,60 +15,86 @@ import javax.swing.JPanel;
  * @author Я
  */
 public class LiczbaPi extends javax.swing.JFrame {
+    
+    // количество точек, которые будут нарисованы в квадрате
+    // 
+    final int MAX_P_DELTA = 25000;
 
     PanelGraficzny panel = new PanelGraficzny();
+    // радиус окружности - половина стороны квадрата 
+    int R = 100;
+    // количество точек, которые будут нарисованы в квадрате
+    int maxP = 0;
+    // 
+    double pi;
+    // счетчик точек, которые попадут внутрь окружности
+    int ls = 0;
+    Random r = new Random();
+    Image obraz;
+    Graphics bufor;
 
     public LiczbaPi() {
         initComponents();
-        setSize(500, 500);
-        panel.setBounds(20, 20, 500, 500);
+        setSize(800, 600);
+        panel.setBounds(20, 20, 300, 300);
         add(panel);
+        obraz = createImage(panel.getWidth(), panel.getHeight());
+        bufor = obraz.getGraphics();
+        start();
+        jTable1.setValueAt(Math.PI, 0, 3);
     }
 
     class PanelGraficzny extends JPanel {
-
-        Random r = new Random();
-
         protected void paintComponent(Graphics g) {
-            // радиус окружности - половина стороны квадрата 
-            int R = 100;
-            // количество точек, которые будут нарисованы в квадрате
-            int maxP = 25000;
-            // счетчик точек, которые попадут внутрь окружности
-            int ls = 0;
             // переход в координаты начала рисования квадрата
             // (верхний левый угол квадрата отступает от верхней и левой сторон
             // экрана на 50 пикселов)
-            g.translate(50, 50);
-            // рисование всех точек
-            for (int lp = 0; lp < maxP; lp++) {
-                // координата х равна стороне квадрата, умноженной на случайное
-                // число от 0 до 1, то есть точка по горизонатли будет
-                // расположена внутри квадрата в случайном месте
-                double x = 2 * R * r.nextDouble(); // (x,y)– wylosowany punkt kwadratu
-                // то же самое - по вертикали
-                double y = 2 * R * r.nextDouble();
-                // формула определения, находится ли точка внутри круга
-                if ((x - R) * (x - R) + (y - R) * (y - R) <= R * R) { // punkt (x,y) leży w kole wpisanym w kwadrat
-                    ls++;
-                    g.setColor(Color.black); //warunkowe zwiększenie liczby sukcesów
-                } else {
-                    g.setColor(Color.white);
-                }
-                g.drawLine((int) x, (int) y, (int) x, (int) y); //rysowanie punktu
-            }
-            // смещение точки для начала рисования вниз и вправо
-            g.translate(2 * R, 2 * R);
-            // вывод количества нарисованных точек, попавших в круг точек,
-            // и рассчитанного из размеров окружности числа пи 
-            g.clearRect(0, 0, 250, 100);
-            g.setColor(Color.red);
-            g.drawString("Liczba wszystkich punktów = " + maxP, 20, 20);
-            g.drawString("Liczba punktów w kole = " + ls, 20, 40);
-            g.drawLine(20, 60, 200, 60);
-            g.drawString("Liczba pi = " + 4.0 * ls / maxP, 20, 80);
+            // g.translate(50, 50);
+            g.drawImage(obraz, 50, 50, this);
         }
 
+    }
+    
+    private void losowanie() {
+        // 
+        maxP += MAX_P_DELTA;
+        // рисование всех точек
+        for (int lp = 0; lp < MAX_P_DELTA; lp++) {
+            // координата х равна стороне квадрата, умноженной на случайное
+            // число от 0 до 1, то есть точка по горизонатли будет
+            // расположена внутри квадрата в случайном месте
+            double x = 2 * R * r.nextDouble(); // (x,y)– wylosowany punkt kwadratu
+            // то же самое - по вертикали
+            double y = 2 * R * r.nextDouble();
+            // формула определения, находится ли точка внутри круга
+            if ((x - R) * (x - R) + (y - R) * (y - R) <= R * R) { // punkt (x,y) leży w kole wpisanym w kwadrat
+                ls++;
+                bufor.setColor(Color.black); //warunkowe zwiększenie liczby sukcesów
+            } else {
+                bufor.setColor(Color.white);
+            }
+            bufor.drawLine((int) x, (int) y, (int) x, (int) y); //rysowanie punktu
+        }
+        pi = 4.0 * ls / maxP;
+        // смещение точки для начала рисования вниз и вправо
+        // g.translate(2 * R, 2 * R);
+        // вывод количества нарисованных точек, попавших в круг точек,
+        // и рассчитанного из размеров окружности числа пи 
+        /* g.clearRect(0, 0, 250, 100);
+        g.setColor(Color.red);
+        g.drawString("Liczba wszystkich punktów = " + maxP, 20, 20);
+        g.drawString("Liczba punktów w kole = " + ls, 20, 40);
+        g.drawLine(20, 60, 200, 60);
+        g.drawString("Liczba pi = " + 4.0 * ls / maxP, 20, 80); */
+    }
+    
+    private void start() {
+        maxP = ls = 0;
+        jTable1.setValueAt(0, 0, 0);
+        jTable1.setValueAt(0, 0, 1);
+        jTable1.setValueAt(null, 0, 2);
+        bufor.clearRect(0, 0, panel.getWidth(), panel.getHeight());
+        panel.repaint();
     }
 
     /**
@@ -79,21 +106,89 @@ public class LiczbaPi extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jButton1.setText("Losuj");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Restart");
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null}
+            },
+            new String [] {
+                "wszystkich punktów", "punktów w kole", "PI", "Dokładna wartość PI "
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 650, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE))
+                        .addGap(18, 18, 18))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 650, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(320, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton2)))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        losowanie();
+        jTable1.setValueAt(maxP, 0, 0);
+        jTable1.setValueAt(ls, 0, 1);
+        jTable1.setValueAt(pi, 0, 2); // wpisanie do tabeli oszacowania wyniku
+        panel.repaint();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -131,5 +226,11 @@ public class LiczbaPi extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 }
